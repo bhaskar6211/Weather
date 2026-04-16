@@ -70,33 +70,40 @@ function formatDayLabel(dateValue, index) {
   }).format(new Date(`${dateValue}T12:00:00`));
 }
 
-export async function fetchWeatherForCity(searchTerm, signal) {
-  const geocodeResponse = await fetch(
-    `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(searchTerm)}&count=1&language=en&format=json`,
-    { signal }
-  );
+function isJsonResponse(response) {
+  const contentType = response.headers.get('content-type') || '';
+  return contentType.includes('application/json') || contentType.includes('+json');
+}
 
-  if (!geocodeResponse.ok) {
-    throw new Error('Could not look up that location.');
+async function fetchJsonWithFallback(primaryUrl, fallbackUrl, signal, fallbackErrorMessage) {
+  try {
+    const primaryResponse = await fetch(primaryUrl, { signal });
+
+    if (primaryResponse.ok && isJsonResponse(primaryResponse)) {
+      return primaryResponse.json();
+    }
+
+    if (primaryResponse.ok) {
+      const bodyPreview = (await primaryResponse.text()).trimStart();
+
+      if (!bodyPreview.startsWith('<')) {
+        throw new Error(fallbackErrorMessage);
+      }
+    }
+  } catch {
+    // Fall through to the direct upstream request.
   }
 
-  const geocodeData = await geocodeResponse.json();
-  const location = geocodeData.results?.[0];
+  const fallbackResponse = await fetch(fallbackUrl, { signal });
 
-  if (!location) {
-    throw new Error(`No location found for "${searchTerm}".`);
+  if (!fallbackResponse.ok) {
+    throw new Error(fallbackErrorMessage);
   }
 
-  const weatherResponse = await fetch(
-    `https://api.open-meteo.com/v1/forecast?latitude=${location.latitude}&longitude=${location.longitude}&current=temperature_2m,relative_humidity_2m,apparent_temperature,wind_speed_10m,surface_pressure,weather_code,is_day&hourly=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max&forecast_days=7&timezone=auto`,
-    { signal }
-  );
+  return fallbackResponse.json();
+}
 
-  if (!weatherResponse.ok) {
-    throw new Error('Weather service unavailable right now.');
-  }
-
-  const weatherData = await weatherResponse.json();
+async function buildWeatherPayload(location, weatherData, fallbackLabel = 'Current location') {
   const current = weatherData.current;
   const daily = weatherData.daily;
   const hourly = weatherData.hourly;
@@ -124,9 +131,9 @@ export async function fetchWeatherForCity(searchTerm, signal) {
   }
 
   return {
-    locationLabel: formatLocationLabel(location),
+    locationLabel: formatLocationLabel(location) || fallbackLabel,
     condition: currentWeather.label,
-    summary: `${currentWeather.description} in ${location.name}.`,
+    summary: `${currentWeather.description} in ${location.name || fallbackLabel}.`,
     temperatureC: Math.round(current.temperature_2m),
     feelsLikeC: Math.round(current.apparent_temperature),
     humidity: Math.round(current.relative_humidity_2m),
@@ -157,4 +164,62 @@ export async function fetchWeatherForCity(searchTerm, signal) {
     }),
     alerts,
   };
+}
+
+async function fetchWeatherForLocation(location, signal, fallbackLabel = 'Current location') {
+  const weatherData = await fetchJsonWithFallback(
+    `/api/weather?latitude=${location.latitude}&longitude=${location.longitude}`,
+    `https://api.open-meteo.com/v1/forecast?latitude=${location.latitude}&longitude=${location.longitude}&current=temperature_2m,relative_humidity_2m,apparent_temperature,wind_speed_10m,surface_pressure,weather_code,is_day&hourly=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max&forecast_days=7&timezone=auto`,
+    signal,
+    'Weather service unavailable right now.'
+  );
+  return buildWeatherPayload(location, weatherData, fallbackLabel);
+}
+
+async function resolveLocationByName(searchTerm, signal) {
+  const geocodeData = await fetchJsonWithFallback(
+    `/api/geocode/search?name=${encodeURIComponent(searchTerm)}`,
+    `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(searchTerm)}&count=1&language=en&format=json`,
+    signal,
+    'No results found. Try another location.'
+  );
+  const location = geocodeData.results?.[0];
+
+  if (!location) {
+    throw new Error('No results found. Try another location.');
+  }
+
+  return location;
+}
+
+async function resolveLocationByCoordinates(latitude, longitude, signal) {
+  const reverseData = await fetchJsonWithFallback(
+    `/api/geocode/reverse?latitude=${latitude}&longitude=${longitude}`,
+    `https://geocoding-api.open-meteo.com/v1/reverse?latitude=${latitude}&longitude=${longitude}&count=1&language=en&format=json`,
+    signal,
+    'Unable to detect your location.'
+  );
+  return reverseData.results?.[0] || null;
+}
+
+export async function fetchWeatherForCity(searchTerm, signal) {
+  const location = await resolveLocationByName(searchTerm, signal);
+
+  const weatherData = await fetchJsonWithFallback(
+    `/api/weather?latitude=${location.latitude}&longitude=${location.longitude}`,
+    `https://api.open-meteo.com/v1/forecast?latitude=${location.latitude}&longitude=${location.longitude}&current=temperature_2m,relative_humidity_2m,apparent_temperature,wind_speed_10m,surface_pressure,weather_code,is_day&hourly=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max&forecast_days=7&timezone=auto`,
+    signal,
+    'Weather service unavailable right now.'
+  );
+  return buildWeatherPayload(location, weatherData);
+}
+
+export async function fetchWeatherForCoordinates(latitude, longitude, signal) {
+  const location = (await resolveLocationByCoordinates(latitude, longitude, signal)) || {
+    name: 'Current location',
+    latitude,
+    longitude,
+  };
+
+  return fetchWeatherForLocation(location, signal, 'Current location');
 }

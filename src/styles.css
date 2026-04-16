@@ -150,6 +150,29 @@ input {
   justify-items: end;
 }
 
+.search-meta-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: end;
+}
+
+.location-button {
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.22), rgba(251, 191, 36, 0.08));
+  color: #fff7db;
+  border-radius: 999px;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: transform 0.2s ease, filter 0.2s ease, border-color 0.2s ease;
+}
+
+.location-button:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.06);
+  border-color: rgba(251, 191, 36, 0.55);
+}
+
 .status-pill {
   display: inline-flex;
   align-items: center;
@@ -166,6 +189,30 @@ input {
   gap: 10px;
   flex-wrap: wrap;
   justify-content: end;
+}
+
+.recent-searches {
+  display: grid;
+  gap: 10px;
+  justify-items: end;
+}
+
+.recent-searches-label {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.recent-search-list {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: end;
+}
+
+.recent-search-empty {
+  color: var(--muted);
+  font-size: 0.95rem;
 }
 
 .city-button,
@@ -420,8 +467,17 @@ input {
   }
 
   .hero-actions,
-  .status-row {
+  .status-row,
+  .search-meta-row,
+  .recent-searches,
+  .recent-search-list {
     justify-items: start;
+  }
+
+  .search-meta-row,
+  .city-switcher,
+  .recent-search-list {
+    justify-content: start;
   }
 
   .dashboard-grid {

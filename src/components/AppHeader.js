@@ -4,11 +4,14 @@ function AppHeader({
   searchInput,
   setSearchInput,
   handleSearchSubmit,
-  isLoading,
-  error,
+  statusMessage,
+  isLocatingLocation,
   presetCities,
   query,
+  recentSearches,
   onPresetSelect,
+  onRecentSelect,
+  onUseCurrentLocation,
 }) {
   return (
     <header className="hero-panel" aria-label="App header">
@@ -27,10 +30,10 @@ function AppHeader({
           <input
             className="search-input"
             type="search"
-            placeholder="Search a city"
+            placeholder="Search city, state, or country"
             value={searchInput}
             onChange={(event) => setSearchInput(event.target.value)}
-            aria-label="Search for a city"
+            aria-label="Search city, state, or country"
           />
           <button type="submit" className="search-button">
             Search
@@ -38,9 +41,12 @@ function AppHeader({
         </form>
 
         <div className="status-row">
-          <span className="status-pill">
-            {isLoading ? 'Loading live weather...' : error ? 'Update failed' : 'Live data from Open-Meteo'}
-          </span>
+          <div className="search-meta-row">
+            <button type="button" className="location-button" onClick={onUseCurrentLocation}>
+              {isLocatingLocation ? 'Detecting your location...' : 'Current Location'}
+            </button>
+            <span className="status-pill">{statusMessage}</span>
+          </div>
           <div className="city-switcher" aria-label="Quick city presets">
             {presetCities.map((cityName) => (
               <button
@@ -52,6 +58,25 @@ function AppHeader({
                 {cityName}
               </button>
             ))}
+          </div>
+          <div className="recent-searches" aria-label="Recently searched locations">
+            <p className="recent-searches-label">Recently searched locations</p>
+            <div className="recent-search-list">
+              {recentSearches.length ? (
+                recentSearches.map((locationLabel) => (
+                  <button
+                    key={locationLabel}
+                    type="button"
+                    className={locationLabel.toLowerCase() === query.toLowerCase() ? 'city-button active' : 'city-button'}
+                    onClick={() => onRecentSelect(locationLabel)}
+                  >
+                    {locationLabel}
+                  </button>
+                ))
+              ) : (
+                <span className="recent-search-empty">No recent locations yet.</span>
+              )}
+            </div>
           </div>
         </div>
       </div>
