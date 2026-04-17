@@ -11,15 +11,16 @@ function CurrentWeatherCard({
   displayedTemperature,
   displayedFeelsLike,
 }) {
+  const conditionLabel = weather?.conditionGroup || weather?.condition || '--';
+  const updatedAtLabel = weather?.updatedAt || '--';
+
   return (
     <article className="current-card">
       <div className="current-topline">
         <div>
           <p className="location">{weather ? weather.locationLabel : query}</p>
-          <h2>{isLoading ? 'Loading current conditions' : error ? 'Weather unavailable' : weather.condition}</h2>
-          <p className="summary">
-            {isLoading ? 'Fetching the latest forecast data right now.' : error || weather.summary}
-          </p>
+          <h2>Now</h2>
+          <p className="summary">{isLoading ? 'Fetching the latest forecast data right now.' : error || weather?.summary}</p>
         </div>
         <button type="button" className="unit-toggle" onClick={onToggleUnits} disabled={!weather}>
           Switch to {isCelsius ? 'Fahrenheit' : 'Celsius'}
@@ -30,17 +31,19 @@ function CurrentWeatherCard({
         <span className="temperature">{displayedTemperature}</span>
         <div className="temperature-meta">
           <span>Feels like {displayedFeelsLike}</span>
-          <span>{isLoading ? 'Updating now' : 'Updated a few moments ago'}</span>
+          <span>{isLoading ? 'Last updated at --' : `Last updated at ${updatedAtLabel}`}</span>
         </div>
       </div>
 
+      <p className="condition-line">Condition: {conditionLabel}</p>
+
       <div className="stats-grid">
-        <WeatherMetric label="Humidity" value={weather ? `${weather.humidity}%` : '--'} detail="Comfort index" />
-        <WeatherMetric label="Wind" value={weather ? `${weather.windKph} kph` : '--'} detail="Steady breeze" />
-        <WeatherMetric label="Pressure" value={weather ? `${weather.pressureMb} mb` : '--'} detail="Sea-level reading" />
+        <WeatherMetric label="Humidity" value={weather ? `${weather.humidity}%` : '--'} detail="Moisture in the air" />
+        <WeatherMetric label="Wind Speed" value={weather ? `${weather.windKph} km/h` : '--'} detail="Surface wind" />
+        <WeatherMetric label="Pressure" value={weather ? `${weather.pressureMb} hPa` : '--'} detail="Air pressure" />
+        <WeatherMetric label="Visibility" value={weather ? `${weather.visibilityKm} km` : '--'} detail="Clear view range" />
         <WeatherMetric label="UV Index" value={weather ? weather.uvIndex : '--'} detail="Sun exposure" />
-        <WeatherMetric label="Sunrise" value={weather ? weather.sunrise : '--:--'} detail="Morning light" />
-        <WeatherMetric label="Sunset" value={weather ? weather.sunset : '--:--'} detail="Golden hour" />
+        <WeatherMetric label="Dew Point" value={weather ? `${weather.dewPointC}°` : '--'} detail="Humidity threshold" />
       </div>
     </article>
   );
