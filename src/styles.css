@@ -385,33 +385,64 @@ input {
 
 .hourly-list {
   display: grid;
-  gap: 12px;
+  gap: 10px;
 }
 
 .hourly-item,
 .forecast-row {
   display: grid;
-  grid-template-columns: 1fr auto auto;
+  grid-template-columns: minmax(0, 1fr) auto auto;
   align-items: center;
-  gap: 12px;
-  padding: 14px 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  transition: background 0.2s ease;
+  gap: 14px;
+  padding: 14px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.03);
+  transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
 }
 
 .hourly-item:hover,
 .forecast-row:hover {
-  background: rgba(255, 255, 255, 0.03);
+  transform: translateY(-2px);
+  border-color: rgba(125, 211, 252, 0.28);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .hourly-item:first-child,
 .forecast-row:first-child {
-  border-top: 0;
-  padding-top: 0;
+  margin-top: 0;
 }
 
 .hourly-item strong {
   font-size: 1.25rem;
+}
+
+.hourly-timeblock,
+.forecast-dayblock {
+  display: grid;
+  gap: 4px;
+}
+
+.hourly-time,
+.forecast-day {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.hourly-rain,
+.forecast-rain {
+  color: var(--accent);
+  font-size: 0.84rem;
+}
+
+.hourly-icon {
+  font-style: normal;
+}
+
+.hourly-temp {
+  justify-self: end;
+  font-weight: 700;
+  color: var(--text);
 }
 
 .alert-panel ul {
@@ -430,18 +461,37 @@ input {
 
 .forecast-list {
   display: grid;
+  gap: 10px;
 }
 
 .forecast-row {
-  grid-template-columns: 120px 1fr auto;
+  grid-template-columns: minmax(0, 1.35fr) minmax(140px, 0.85fr);
 }
 
-.forecast-day {
-  font-weight: 600;
+.forecast-rangeblock {
+  display: grid;
+  grid-template-columns: auto auto;
+  justify-content: end;
+  gap: 2px 10px;
+  align-items: center;
+  text-align: right;
 }
 
-.forecast-range {
-  font-weight: 700;
+.forecast-range-label {
+  color: var(--muted);
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.forecast-range-value {
+  color: var(--text);
+  font-size: 1.02rem;
+  font-weight: 800;
+}
+
+.forecast-range-value-muted {
+  color: var(--accent);
 }
 
 .empty-state {
@@ -524,6 +574,11 @@ input {
   }
 
   .hourly-item {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr) auto auto;
+  }
+
+  .forecast-rangeblock {
+    justify-content: start;
+    text-align: left;
   }
 }

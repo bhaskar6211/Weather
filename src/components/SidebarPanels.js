@@ -6,15 +6,18 @@ function SidebarPanels({ weather, isLoading, isCelsius, toFahrenheit }) {
       <section className="panel panel-soft">
         <div className="panel-header">
           <h3>Hourly Forecast</h3>
-          <span>Next 6 hours</span>
+          <span>Next 24 Hours</span>
         </div>
         <div className="hourly-list">
           {weather?.hourly?.length ? (
             weather.hourly.map((item) => (
               <div key={item.time} className="hourly-item">
-                <span>{item.time}</span>
-                <strong>{item.icon}</strong>
-                <span>{isCelsius ? `${item.temp}°C` : `${toFahrenheit(item.temp)}°F`}</span>
+                <div className="hourly-timeblock">
+                  <span className="hourly-time">{item.time}</span>
+                  <span className="hourly-rain">Chance of Rain: {item.rainChance}%</span>
+                </div>
+                <strong className="hourly-icon">{item.icon}</strong>
+                <span className="hourly-temp">{isCelsius ? `${item.temp}°C` : `${toFahrenheit(item.temp)}°F`}</span>
               </div>
             ))
           ) : (

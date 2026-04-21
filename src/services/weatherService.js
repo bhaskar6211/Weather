@@ -126,7 +126,7 @@ async function buildWeatherPayload(location, weatherData, fallbackLabel = 'Curre
   const currentWeather = getWeatherDetails(current.weather_code, Boolean(current.is_day));
   const currentHourIndex = hourly.time.findIndex((timeValue) => timeValue === current.time);
   const startIndex = currentHourIndex >= 0 ? currentHourIndex : 0;
-  const hourlyWindow = hourly.time.slice(startIndex, startIndex + 6);
+  const hourlyWindow = hourly.time.slice(startIndex, startIndex + 24);
 
   const alerts = [];
 
@@ -170,6 +170,7 @@ async function buildWeatherPayload(location, weatherData, fallbackLabel = 'Curre
         time: index === 0 ? 'Now' : formatTime(timeValue),
         temp: Math.round(hourly.temperature_2m?.[codeIndex]),
         icon: hourlyWeather.icon,
+        rainChance: Math.round(hourly.precipitation_probability?.[codeIndex] ?? 0),
       };
     }),
     forecast: daily.time.map((dateValue, index) => {
@@ -180,6 +181,7 @@ async function buildWeatherPayload(location, weatherData, fallbackLabel = 'Curre
         high: Math.round(daily.temperature_2m_max?.[index]),
         low: Math.round(daily.temperature_2m_min?.[index]),
         label: dayWeather.label,
+        rainChance: Math.round(daily.precipitation_probability_max?.[index] ?? 0),
       };
     }),
     alerts,
@@ -189,7 +191,7 @@ async function buildWeatherPayload(location, weatherData, fallbackLabel = 'Curre
 async function fetchWeatherForLocation(location, signal, fallbackLabel = 'Current location') {
   const weatherData = await fetchJsonWithFallback(
     `/api/weather?latitude=${location.latitude}&longitude=${location.longitude}`,
-    `https://api.open-meteo.com/v1/forecast?latitude=${location.latitude}&longitude=${location.longitude}&current=temperature_2m,relative_humidity_2m,apparent_temperature,wind_speed_10m,surface_pressure,weather_code,is_day,visibility,dew_point_2m&hourly=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max&forecast_days=7&timezone=auto`,
+    `https://api.open-meteo.com/v1/forecast?latitude=${location.latitude}&longitude=${location.longitude}&current=temperature_2m,relative_humidity_2m,apparent_temperature,wind_speed_10m,surface_pressure,weather_code,is_day,visibility,dew_point_2m&hourly=temperature_2m,weather_code,precipitation_probability&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,precipitation_probability_max&forecast_days=7&timezone=auto`,
     signal,
     'Weather service unavailable right now.'
   );
@@ -227,7 +229,7 @@ export async function fetchWeatherForCity(searchTerm, signal) {
 
   const weatherData = await fetchJsonWithFallback(
     `/api/weather?latitude=${location.latitude}&longitude=${location.longitude}`,
-    `https://api.open-meteo.com/v1/forecast?latitude=${location.latitude}&longitude=${location.longitude}&current=temperature_2m,relative_humidity_2m,apparent_temperature,wind_speed_10m,surface_pressure,weather_code,is_day,visibility,dew_point_2m&hourly=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max&forecast_days=7&timezone=auto`,
+    `https://api.open-meteo.com/v1/forecast?latitude=${location.latitude}&longitude=${location.longitude}&current=temperature_2m,relative_humidity_2m,apparent_temperature,wind_speed_10m,surface_pressure,weather_code,is_day,visibility,dew_point_2m&hourly=temperature_2m,weather_code,precipitation_probability&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,precipitation_probability_max&forecast_days=7&timezone=auto`,
     signal,
     'Weather service unavailable right now.'
   );
