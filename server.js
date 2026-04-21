@@ -76,6 +76,15 @@ async function handleApi(requestUrl, res) {
     );
   }
 
+  if (pathname === '/api/air-quality') {
+    const latitude = searchParams.get('latitude') || '';
+    const longitude = searchParams.get('longitude') || '';
+    return proxyJson(
+      `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${encodeURIComponent(latitude)}&longitude=${encodeURIComponent(longitude)}&current=us_aqi,european_aqi&timezone=auto`,
+      res
+    );
+  }
+
   sendJson(res, 404, { error: 'Unknown API route.' });
 }
 

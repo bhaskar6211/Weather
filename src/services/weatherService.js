@@ -86,6 +86,84 @@ function formatDayLabel(dateValue, index) {
   }).format(new Date(`${dateValue}T12:00:00`));
 }
 
+function getAqiDetails(aqiValue) {
+  if (typeof aqiValue !== 'number' || Number.isNaN(aqiValue)) {
+    return {
+      value: null,
+      level: 'Unavailable',
+      message: 'Air quality data is not available right now.',
+    };
+  }
+
+  if (aqiValue <= 50) {
+    return {
+      value: aqiValue,
+      level: 'Good',
+      message: 'Air quality is satisfactory for most people. Outdoor activity is fine.',
+    };
+  }
+
+  if (aqiValue <= 100) {
+    return {
+      value: aqiValue,
+      level: 'Moderate',
+      message: 'Sensitive groups should reduce prolonged outdoor exertion.',
+    };
+  }
+
+  return {
+    value: aqiValue,
+    level: 'Unhealthy',
+    message: 'Limit outdoor activity and reduce exposure, especially if you have respiratory conditions.',
+  };
+}
+
+function getMoonPhaseLabel(dateValue) {
+  const date = new Date(`${dateValue}T12:00:00`);
+
+  if (Number.isNaN(date.getTime())) {
+    return 'Unavailable';
+  }
+
+  const knownNewMoon = Date.UTC(2000, 0, 6, 18, 14);
+  const synodicMonth = 29.53058867;
+  const age = (((date.getTime() - knownNewMoon) / 86400000) % synodicMonth + synodicMonth) % synodicMonth;
+
+  if (age < 1.84566) {
+    return 'New Moon';
+  }
+
+  if (age < 5.53699) {
+    return 'Waxing Crescent';
+  }
+
+  if (age < 9.22831) {
+    return 'First Quarter';
+  }
+
+  if (age < 12.91963) {
+    return 'Waxing Gibbous';
+  }
+
+  if (age < 16.61096) {
+    return 'Full Moon';
+  }
+
+  if (age < 20.30228) {
+    return 'Waning Gibbous';
+  }
+
+  if (age < 23.99361) {
+    return 'Last Quarter';
+  }
+
+  if (age < 27.68493) {
+    return 'Waning Crescent';
+  }
+
+  return 'New Moon';
+}
+
 function isJsonResponse(response) {
   const contentType = response.headers.get('content-type') || '';
   return contentType.includes('application/json') || contentType.includes('+json');
@@ -117,6 +195,30 @@ async function fetchJsonWithFallback(primaryUrl, fallbackUrl, signal, fallbackEr
   }
 
   return fallbackResponse.json();
+}
+
+function buildAirQualityPayload(airQualityData) {
+  const airQuality = airQualityData.current || {};
+  const aqiDetails = getAqiDetails(airQuality.us_aqi ?? airQuality.european_aqi);
+
+  return {
+    airQuality: {
+      value: aqiDetails.value,
+      level: aqiDetails.level,
+      message: aqiDetails.message,
+    },
+  };
+}
+
+async function fetchAirQualityForLocation(location, signal) {
+  const airQualityData = await fetchJsonWithFallback(
+    `/api/air-quality?latitude=${location.latitude}&longitude=${location.longitude}`,
+    `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${location.latitude}&longitude=${location.longitude}&current=us_aqi,european_aqi&timezone=auto`,
+    signal,
+    'Air quality service unavailable right now.'
+  );
+
+  return buildAirQualityPayload(airQualityData);
 }
 
 async function buildWeatherPayload(location, weatherData, fallbackLabel = 'Current location') {
@@ -161,6 +263,7 @@ async function buildWeatherPayload(location, weatherData, fallbackLabel = 'Curre
     uvIndex: Math.round(daily.uv_index_max?.[0] ?? 0),
     sunrise: formatTime(daily.sunrise?.[0]),
     sunset: formatTime(daily.sunset?.[0]),
+    moonPhase: getMoonPhaseLabel(daily.time?.[0] || current.time),
     updatedAt: formatTime(current.time),
     hourly: hourlyWindow.map((timeValue, index) => {
       const codeIndex = startIndex + index;
@@ -195,7 +298,19 @@ async function fetchWeatherForLocation(location, signal, fallbackLabel = 'Curren
     signal,
     'Weather service unavailable right now.'
   );
-  return buildWeatherPayload(location, weatherData, fallbackLabel);
+
+  const airQualityData = await fetchAirQualityForLocation(location, signal).catch(() => ({
+    airQuality: {
+      value: null,
+      level: 'Unavailable',
+      message: 'Air quality data is not available right now.',
+    },
+  }));
+
+  return {
+    ...(await buildWeatherPayload(location, weatherData, fallbackLabel)),
+    ...airQualityData,
+  };
 }
 
 async function resolveLocationByName(searchTerm, signal) {
@@ -233,7 +348,19 @@ export async function fetchWeatherForCity(searchTerm, signal) {
     signal,
     'Weather service unavailable right now.'
   );
-  return buildWeatherPayload(location, weatherData);
+
+  const airQualityData = await fetchAirQualityForLocation(location, signal).catch(() => ({
+    airQuality: {
+      value: null,
+      level: 'Unavailable',
+      message: 'Air quality data is not available right now.',
+    },
+  }));
+
+  return {
+    ...(await buildWeatherPayload(location, weatherData)),
+    ...airQualityData,
+  };
 }
 
 export async function fetchWeatherForCoordinates(latitude, longitude, signal) {

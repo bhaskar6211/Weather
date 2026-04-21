@@ -455,6 +455,93 @@ input {
   margin-top: 10px;
 }
 
+.info-panel {
+  display: grid;
+  gap: 14px;
+}
+
+.info-block,
+.info-list {
+  display: grid;
+  gap: 12px;
+}
+
+.aqi-pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.aqi-value {
+  font-size: 1.05rem;
+}
+
+.aqi-level {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  border: 1px solid rgba(125, 211, 252, 0.22);
+  background: rgba(125, 211, 252, 0.1);
+  color: var(--accent);
+}
+
+.aqi-level-good {
+  border-color: rgba(34, 197, 94, 0.26);
+  background: rgba(34, 197, 94, 0.12);
+  color: #86efac;
+}
+
+.aqi-level-moderate {
+  border-color: rgba(251, 191, 36, 0.28);
+  background: rgba(251, 191, 36, 0.12);
+  color: #fde68a;
+}
+
+.aqi-level-unhealthy {
+  border-color: rgba(248, 113, 113, 0.28);
+  background: rgba(248, 113, 113, 0.12);
+  color: #fca5a5;
+}
+
+.aqi-level-unavailable {
+  color: var(--muted);
+}
+
+.info-copy {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.info-row:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.info-row span {
+  color: var(--muted);
+}
+
+.info-row strong {
+  color: var(--text);
+  font-weight: 700;
+}
+
 .forecast-panel {
   margin-top: 24px;
 }
