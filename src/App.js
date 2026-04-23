@@ -3,9 +3,10 @@ import AppHeader from './components/AppHeader';
 import CurrentWeatherCard from './components/CurrentWeatherCard';
 import ForecastPanel from './components/ForecastPanel';
 import SidebarPanels from './components/SidebarPanels';
-import { fetchWeatherForCity, fetchWeatherForCoordinates, presetCities, toFahrenheit } from './services/weatherService';
+import { fetchWeatherForCity, fetchWeatherForCoordinates, presetCities, toFahrenheit, toMph } from './services/weatherService';
 
 const RECENT_SEARCHES_STORAGE_KEY = 'weather.recentSearches';
+const THEME_STORAGE_KEY = 'weather.darkModeEnabled';
 const MAX_RECENT_SEARCHES = 5;
 
 function App() {
@@ -15,6 +16,17 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [isCelsius, setIsCelsius] = useState(true);
+  const [windSpeedUnit, setWindSpeedUnit] = useState('km/h');
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [darkModeEnabled, setDarkModeEnabled] = useState(() => {
+    try {
+      const savedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
+
+      return savedTheme === null ? true : savedTheme === 'true';
+    } catch {
+      return true;
+    }
+  });
   const [recentSearches, setRecentSearches] = useState([]);
   const [isLocatingLocation, setIsLocatingLocation] = useState(false);
 
@@ -35,6 +47,18 @@ function App() {
   useEffect(() => {
     window.localStorage.setItem(RECENT_SEARCHES_STORAGE_KEY, JSON.stringify(recentSearches));
   }, [recentSearches]);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(THEME_STORAGE_KEY, String(darkModeEnabled));
+    } catch {
+      // Ignore storage failures and keep the current theme in memory.
+    }
+
+    document.body.classList.toggle('theme-light', !darkModeEnabled);
+    document.body.classList.toggle('theme-dark', darkModeEnabled);
+    document.body.style.colorScheme = darkModeEnabled ? 'dark' : 'light';
+  }, [darkModeEnabled]);
 
   const addRecentSearch = (locationLabel) => {
     const trimmedLabel = locationLabel.trim();
@@ -103,6 +127,14 @@ function App() {
 
     return isCelsius ? `${weather.feelsLikeC}°C` : `${toFahrenheit(weather.feelsLikeC)}°F`;
   }, [isCelsius, weather]);
+
+  const displayedWindSpeed = useMemo(() => {
+    if (!weather) {
+      return '--';
+    }
+
+    return windSpeedUnit === 'km/h' ? `${weather.windKph} km/h` : `${toMph(weather.windKph)} mph`;
+  }, [weather, windSpeedUnit]);
 
   const handleSearchSubmit = (event) => {
     event.preventDefault();
@@ -190,16 +222,26 @@ function App() {
           isLoading={isLoading}
           error={error}
           isCelsius={isCelsius}
+          windSpeedUnit={windSpeedUnit}
           onToggleUnits={() => setIsCelsius((value) => !value)}
           displayedTemperature={displayedTemperature}
           displayedFeelsLike={displayedFeelsLike}
+          displayedWindSpeed={displayedWindSpeed}
         />
 
         <SidebarPanels
           weather={weather}
           isLoading={isLoading}
           isCelsius={isCelsius}
+          windSpeedUnit={windSpeedUnit}
+          notificationsEnabled={notificationsEnabled}
+          darkModeEnabled={darkModeEnabled}
           toFahrenheit={toFahrenheit}
+          toMph={toMph}
+          onToggleTemperatureUnit={() => setIsCelsius((value) => !value)}
+          onToggleWindSpeedUnit={() => setWindSpeedUnit((value) => (value === 'km/h' ? 'mph' : 'km/h'))}
+          onToggleNotifications={() => setNotificationsEnabled((value) => !value)}
+          onToggleDarkMode={() => setDarkModeEnabled((value) => !value)}
         />
       </section>
 

@@ -7,9 +7,11 @@ function CurrentWeatherCard({
   isLoading,
   error,
   isCelsius,
+  windSpeedUnit,
   onToggleUnits,
   displayedTemperature,
   displayedFeelsLike,
+  displayedWindSpeed,
 }) {
   const conditionLabel = weather?.conditionGroup || weather?.condition || '--';
   const updatedAtLabel = weather?.updatedAt || '--';
@@ -39,7 +41,7 @@ function CurrentWeatherCard({
 
       <div className="stats-grid">
         <WeatherMetric label="Humidity" value={weather ? `${weather.humidity}%` : '--'} detail="Moisture in the air" />
-        <WeatherMetric label="Wind Speed" value={weather ? `${weather.windKph} km/h` : '--'} detail="Surface wind" />
+        <WeatherMetric label="Wind Speed" value={displayedWindSpeed} detail={`Surface wind in ${windSpeedUnit}`} />
         <WeatherMetric label="Pressure" value={weather ? `${weather.pressureMb} hPa` : '--'} detail="Air pressure" />
         <WeatherMetric label="Visibility" value={weather ? `${weather.visibilityKm} km` : '--'} detail="Clear view range" />
         <WeatherMetric label="UV Index" value={weather ? weather.uvIndex : '--'} detail="Sun exposure" />

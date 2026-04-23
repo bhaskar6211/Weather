@@ -25,6 +25,10 @@ export function toFahrenheit(celsius) {
   return Math.round((celsius * 9) / 5 + 32);
 }
 
+export function toMph(kph) {
+  return Math.round(kph * 0.621371);
+}
+
 function formatLocationLabel(location) {
   return [location.name, location.admin1, location.country].filter(Boolean).join(', ');
 }

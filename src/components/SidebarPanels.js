@@ -1,10 +1,26 @@
 import React from 'react';
 
-function SidebarPanels({ weather, isLoading, isCelsius, toFahrenheit }) {
+function SidebarPanels({
+  weather,
+  isLoading,
+  isCelsius,
+  windSpeedUnit,
+  notificationsEnabled,
+  darkModeEnabled,
+  toFahrenheit,
+  toMph,
+  onToggleTemperatureUnit,
+  onToggleWindSpeedUnit,
+  onToggleNotifications,
+  onToggleDarkMode,
+}) {
   const airQuality = weather?.airQuality;
   const sunriseLabel = weather?.sunrise || '--';
   const sunsetLabel = weather?.sunset || '--';
   const moonPhaseLabel = weather?.moonPhase || '--';
+  const hasAlerts = Boolean(weather?.alerts?.length);
+  const alertHeadline = hasAlerts ? 'Severe weather warning in your area' : 'No active alerts';
+  const alertBody = hasAlerts ? 'Heavy rainfall expected. Stay safe.' : 'No active alerts right now.';
 
   return (
     <aside className="sidebar-stack">
@@ -73,15 +89,82 @@ function SidebarPanels({ weather, isLoading, isCelsius, toFahrenheit }) {
           <h3>Weather Alerts</h3>
           <span>Live advisory</span>
         </div>
-        {weather?.alerts?.length ? (
-          <ul>
+        <div className={`alert-banner ${hasAlerts ? 'alert-banner-active' : 'alert-banner-clear'}`}>
+          <span className="alert-badge">{hasAlerts ? 'Advisory' : 'All clear'}</span>
+          <h4>{alertHeadline}</h4>
+          <p>{isLoading ? 'Checking active alerts...' : alertBody}</p>
+        </div>
+        {hasAlerts ? (
+          <ul className="alert-list">
             {weather.alerts.map((alert) => (
               <li key={alert}>{alert}</li>
             ))}
           </ul>
-        ) : (
-          <p className="empty-state">{isLoading ? 'Checking active alerts...' : 'No active alerts right now.'}</p>
-        )}
+        ) : null}
+      </section>
+
+      <section className="panel settings-panel panel-soft">
+        <div className="panel-header">
+          <h3>Settings</h3>
+          <span>Display preferences</span>
+        </div>
+
+        <div className="settings-list">
+          <div className="setting-row">
+            <div>
+              <span className="setting-label">Temperature Unit</span>
+              <p className="setting-copy">{isCelsius ? '°C' : '°F'}</p>
+            </div>
+            <button type="button" className="setting-toggle" onClick={onToggleTemperatureUnit}>
+              {isCelsius ? '°C' : '°F'}
+            </button>
+          </div>
+
+          <div className="setting-row">
+            <div>
+              <span className="setting-label">Wind Speed Unit</span>
+              <p className="setting-copy">{windSpeedUnit}</p>
+            </div>
+            <button type="button" className="setting-toggle" onClick={onToggleWindSpeedUnit}>
+              {windSpeedUnit}
+            </button>
+          </div>
+
+          <div className="setting-row">
+            <div>
+              <span className="setting-label">Enable Notifications</span>
+              <p className="setting-copy">{notificationsEnabled ? 'Enabled' : 'Disabled'}</p>
+            </div>
+            <button
+              type="button"
+              className={`setting-switch ${notificationsEnabled ? 'setting-switch-on' : ''}`}
+              onClick={onToggleNotifications}
+              aria-pressed={notificationsEnabled}
+            >
+              <span />
+            </button>
+          </div>
+
+          <div className="setting-row">
+            <div>
+              <span className="setting-label">Dark Mode</span>
+              <p className="setting-copy">{darkModeEnabled ? 'Enabled' : 'Disabled'}</p>
+            </div>
+            <button
+              type="button"
+              className={`setting-switch ${darkModeEnabled ? 'setting-switch-on' : ''}`}
+              onClick={onToggleDarkMode}
+              aria-pressed={darkModeEnabled}
+            >
+              <span />
+            </button>
+          </div>
+        </div>
+
+        <div className="settings-footnote">
+          <span>Default wind display: {weather ? `${weather.windKph} km/h` : '--'}</span>
+          <span>Converted: {weather ? `${toMph(weather.windKph)} mph` : '--'}</span>
+        </div>
       </section>
     </aside>
   );
