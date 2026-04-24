@@ -8,6 +8,7 @@ function CurrentWeatherCard({
   error,
   isCelsius,
   windSpeedUnit,
+  loadingMessage,
   onToggleUnits,
   displayedTemperature,
   displayedFeelsLike,
@@ -22,7 +23,7 @@ function CurrentWeatherCard({
         <div>
           <p className="location">{weather ? weather.locationLabel : query}</p>
           <h2>Now</h2>
-          <p className="summary">{isLoading ? 'Fetching the latest forecast data right now.' : error || weather?.summary}</p>
+          <p className="summary">{isLoading ? loadingMessage : error || weather?.summary}</p>
         </div>
         <button type="button" className="unit-toggle" onClick={onToggleUnits} disabled={!weather}>
           Switch to {isCelsius ? 'Fahrenheit' : 'Celsius'}
@@ -33,7 +34,7 @@ function CurrentWeatherCard({
         <span className="temperature">{displayedTemperature}</span>
         <div className="temperature-meta">
           <span>Feels like {displayedFeelsLike}</span>
-          <span>{isLoading ? 'Last updated at --' : `Last updated at ${updatedAtLabel}`}</span>
+          <span>{isLoading ? loadingMessage : `Last updated at ${updatedAtLabel}`}</span>
         </div>
       </div>
 

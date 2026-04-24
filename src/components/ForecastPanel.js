@@ -1,6 +1,6 @@
 import React from 'react';
 
-function ForecastPanel({ weather, isLoading, isCelsius, toFahrenheit }) {
+function ForecastPanel({ weather, isLoading, isCelsius, loadingMessage, toFahrenheit }) {
   return (
     <section className="forecast-panel panel panel-soft">
       <div className="panel-header">
@@ -29,7 +29,7 @@ function ForecastPanel({ weather, isLoading, isCelsius, toFahrenheit }) {
             </div>
           ))
         ) : (
-          <p className="empty-state">{isLoading ? 'Loading forecast...' : 'Forecast data is not available.'}</p>
+          <p className="empty-state">{isLoading ? loadingMessage : 'Forecast data is not available.'}</p>
         )}
       </div>
     </section>

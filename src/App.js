@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import AppHeader from './components/AppHeader';
 import CurrentWeatherCard from './components/CurrentWeatherCard';
 import ForecastPanel from './components/ForecastPanel';
@@ -8,6 +8,8 @@ import { fetchWeatherForCity, fetchWeatherForCoordinates, presetCities, toFahren
 const RECENT_SEARCHES_STORAGE_KEY = 'weather.recentSearches';
 const THEME_STORAGE_KEY = 'weather.darkModeEnabled';
 const MAX_RECENT_SEARCHES = 5;
+const LOADING_MESSAGE = 'Fetching latest weather data...';
+const ERROR_MESSAGE = 'Unable to load data. Please try again. Check your internet connection.';
 
 function App() {
   const [locationRequest, setLocationRequest] = useState({ type: 'search', value: 'London' });
@@ -29,6 +31,8 @@ function App() {
   });
   const [recentSearches, setRecentSearches] = useState([]);
   const [isLocatingLocation, setIsLocatingLocation] = useState(false);
+  const [refreshTick, setRefreshTick] = useState(0);
+  const dashboardRef = useRef(null);
 
   useEffect(() => {
     try {
@@ -73,6 +77,18 @@ function App() {
     ].slice(0, MAX_RECENT_SEARCHES));
   };
 
+  const removeRecentSearch = (locationLabel) => {
+    const trimmedLabel = locationLabel.trim();
+
+    if (!trimmedLabel) {
+      return;
+    }
+
+    setRecentSearches((currentSearches) =>
+      currentSearches.filter((entry) => entry.toLowerCase() !== trimmedLabel.toLowerCase())
+    );
+  };
+
   useEffect(() => {
     const controller = new AbortController();
 
@@ -97,7 +113,7 @@ function App() {
         setWeather(null);
         setError(
           fetchError?.message === 'Failed to fetch'
-            ? 'Unable to reach the weather service. Run the app with npm run server from the weather folder.'
+            ? ERROR_MESSAGE
             : fetchError.message || 'Failed to load weather data.'
         );
       } finally {
@@ -110,7 +126,7 @@ function App() {
     loadWeather();
 
     return () => controller.abort();
-  }, [locationRequest]);
+  }, [locationRequest, refreshTick]);
 
   const displayedTemperature = useMemo(() => {
     if (!weather) {
@@ -136,6 +152,66 @@ function App() {
     return windSpeedUnit === 'km/h' ? `${weather.windKph} km/h` : `${toMph(weather.windKph)} mph`;
   }, [weather, windSpeedUnit]);
 
+  const greeting = useMemo(() => {
+    const currentHour = new Date().getHours();
+
+    return currentHour < 18 ? 'Good Morning ☀️' : 'Good Evening 🌙';
+  }, []);
+
+  const weatherInsight = useMemo(() => {
+    if (!weather) {
+      return 'Weather conditions are ideal for travel.';
+    }
+
+    if (weather.airQuality?.level === 'Unhealthy') {
+      return 'Air quality is poor, consider staying indoors.';
+    }
+
+    const hasRainSignals = Boolean(
+      weather.alerts?.some((alert) => /rain|umbrella|showers|humidity/i.test(alert)) ||
+        /Rainy|Thunderstorm/i.test(weather.conditionGroup)
+    );
+
+    if (hasRainSignals) {
+      return 'Carry an umbrella just in case.';
+    }
+
+    if (weather.temperatureC >= 28) {
+      return 'Feels warmer than usual today.';
+    }
+
+    if (weather.conditionGroup === 'Clear' && weather.temperatureC >= 18) {
+      return 'Perfect weather for outdoor activities.';
+    }
+
+    return 'Weather conditions are ideal for travel.';
+  }, [weather]);
+
+  const professionalNotes = useMemo(() => {
+    const notes = [];
+
+    if (weather?.temperatureC >= 28) {
+      notes.push('Feels warmer than usual today.');
+    }
+
+    if (weather?.conditionGroup === 'Clear' && weather?.temperatureC >= 18) {
+      notes.push('Perfect weather for outdoor activities.');
+    }
+
+    if (
+      weather?.airQuality?.level === 'Unhealthy' ||
+      weather?.alerts?.some((alert) => /rain|showers|humidity|wind/i.test(alert))
+    ) {
+      notes.push('Carry an umbrella just in case.');
+    }
+
+    if (notes.length === 0) {
+      notes.push('Perfect weather for outdoor activities.');
+    }
+
+    return notes.slice(0, 3);
+  }, [weather]);
+
   const handleSearchSubmit = (event) => {
     event.preventDefault();
 
@@ -156,6 +232,22 @@ function App() {
   const handleRecentSelect = (locationLabel) => {
     setSearchInput(locationLabel);
     setLocationRequest({ type: 'search', value: locationLabel });
+  };
+
+  const handleRefresh = () => {
+    setRefreshTick((value) => value + 1);
+  };
+
+  const handleViewDetails = () => {
+    dashboardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  const handleAddCity = () => {
+    addRecentSearch(weather?.locationLabel || searchInput);
+  };
+
+  const handleRemoveLocation = () => {
+    removeRecentSearch(weather?.locationLabel || searchInput);
   };
 
   const handleCurrentLocation = () => {
@@ -191,7 +283,7 @@ function App() {
   const statusMessage = isLocatingLocation
     ? 'Detecting your location...'
     : isLoading
-      ? 'Loading live weather...'
+      ? LOADING_MESSAGE
       : error
         ? error
         : 'Live data from Open-Meteo';
@@ -206,6 +298,8 @@ function App() {
         setSearchInput={setSearchInput}
         handleSearchSubmit={handleSearchSubmit}
         statusMessage={statusMessage}
+        greeting={greeting}
+        weatherInsight={weatherInsight}
         isLocatingLocation={isLocatingLocation}
         presetCities={presetCities}
         query={activeSearchValue}
@@ -213,9 +307,14 @@ function App() {
         onPresetSelect={handlePresetSelect}
         onRecentSelect={handleRecentSelect}
         onUseCurrentLocation={handleCurrentLocation}
+        onRefresh={handleRefresh}
+        onViewDetails={handleViewDetails}
+        onAddCity={handleAddCity}
+        onRemoveLocation={handleRemoveLocation}
+        canRemoveLocation={Boolean(searchInput.trim() || weather?.locationLabel)}
       />
 
-      <section className="dashboard-grid">
+      <section className="dashboard-grid" ref={dashboardRef}>
         <CurrentWeatherCard
           weather={weather}
           query={displayQuery}
@@ -223,6 +322,7 @@ function App() {
           error={error}
           isCelsius={isCelsius}
           windSpeedUnit={windSpeedUnit}
+          loadingMessage={LOADING_MESSAGE}
           onToggleUnits={() => setIsCelsius((value) => !value)}
           displayedTemperature={displayedTemperature}
           displayedFeelsLike={displayedFeelsLike}
@@ -238,6 +338,9 @@ function App() {
           darkModeEnabled={darkModeEnabled}
           toFahrenheit={toFahrenheit}
           toMph={toMph}
+          loadingMessage={LOADING_MESSAGE}
+          smartSuggestion={weatherInsight}
+          professionalNotes={professionalNotes}
           onToggleTemperatureUnit={() => setIsCelsius((value) => !value)}
           onToggleWindSpeedUnit={() => setWindSpeedUnit((value) => (value === 'km/h' ? 'mph' : 'km/h'))}
           onToggleNotifications={() => setNotificationsEnabled((value) => !value)}
@@ -249,6 +352,7 @@ function App() {
         weather={weather}
         isLoading={isLoading}
         isCelsius={isCelsius}
+        loadingMessage={LOADING_MESSAGE}
         toFahrenheit={toFahrenheit}
       />
     </main>

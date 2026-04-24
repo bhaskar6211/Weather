@@ -5,6 +5,8 @@ function AppHeader({
   setSearchInput,
   handleSearchSubmit,
   statusMessage,
+  greeting,
+  weatherInsight,
   isLocatingLocation,
   presetCities,
   query,
@@ -12,13 +14,18 @@ function AppHeader({
   onPresetSelect,
   onRecentSelect,
   onUseCurrentLocation,
+  onRefresh,
+  onViewDetails,
+  onAddCity,
+  onRemoveLocation,
+  canRemoveLocation,
 }) {
   return (
     <header className="hero-panel" aria-label="App header">
       <div className="hero-copy">
-        <p className="eyebrow">Weather Forecast</p>
+        <p className="eyebrow">{greeting}</p>
         <h1>Real-Time Weather Updates</h1>
-        <p className="hero-text">Stay Ahead of the Weather</p>
+        <p className="hero-text">{weatherInsight}</p>
         <p className="hero-description">
           Track current conditions, hourly shifts, and the weekly outlook in one clean view built for fast
           decisions.
@@ -46,6 +53,20 @@ function AppHeader({
               {isLocatingLocation ? 'Detecting your location...' : 'Current Location'}
             </button>
             <span className="status-pill">{statusMessage}</span>
+          </div>
+          <div className="action-strip" aria-label="Weather actions">
+            <button type="button" className="action-button action-button-primary" onClick={onRefresh}>
+              Refresh
+            </button>
+            <button type="button" className="action-button" onClick={onViewDetails}>
+              View Details
+            </button>
+            <button type="button" className="action-button" onClick={onAddCity}>
+              Add City
+            </button>
+            <button type="button" className="action-button" onClick={onRemoveLocation} disabled={!canRemoveLocation}>
+              Remove Location
+            </button>
           </div>
           <div className="city-switcher" aria-label="Quick city presets">
             {presetCities.map((cityName) => (

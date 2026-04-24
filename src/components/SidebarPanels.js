@@ -7,6 +7,9 @@ function SidebarPanels({
   windSpeedUnit,
   notificationsEnabled,
   darkModeEnabled,
+  loadingMessage,
+  smartSuggestion,
+  professionalNotes,
   toFahrenheit,
   toMph,
   onToggleTemperatureUnit,
@@ -24,11 +27,13 @@ function SidebarPanels({
 
   return (
     <aside className="sidebar-stack">
-      <section className="panel panel-soft">
-        <div className="panel-header">
-          <h3>Hourly Forecast</h3>
-          <span>Next 24 Hours</span>
-        </div>
+      <details className="panel panel-soft hourly-dropdown">
+        <summary className="panel-header hourly-summary">
+          <div>
+            <h3>Hourly Forecast</h3>
+            <span>Next 24 Hours</span>
+          </div>
+        </summary>
         <div className="hourly-list">
           {weather?.hourly?.length ? (
             weather.hourly.map((item) => (
@@ -45,7 +50,7 @@ function SidebarPanels({
             <p className="empty-state">{isLoading ? 'Loading hourly data...' : 'Hourly data is not available.'}</p>
           )}
         </div>
-      </section>
+      </details>
 
       <section className="panel panel-soft info-panel">
         <div className="panel-header">
@@ -103,6 +108,23 @@ function SidebarPanels({
         ) : null}
       </section>
 
+      <section className="panel panel-soft pro-panel">
+        <div className="panel-header">
+          <h3>Pro-Level UX</h3>
+          <span>Live guidance</span>
+        </div>
+        <div className="pro-insight">
+          <p className="info-copy pro-suggestion">{smartSuggestion}</p>
+          <div className="pro-note-list" aria-label="Professional weather notes">
+            {professionalNotes.map((note) => (
+              <span key={note} className="pro-note-pill">
+                {note}
+              </span>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section className="panel settings-panel panel-soft">
         <div className="panel-header">
           <h3>Settings</h3>
@@ -112,7 +134,7 @@ function SidebarPanels({
         <div className="settings-list">
           <div className="setting-row">
             <div>
-              <span className="setting-label">Temperature Unit</span>
+              <span className="setting-label">Temperature Unit (°C / °F)</span>
               <p className="setting-copy">{isCelsius ? '°C' : '°F'}</p>
             </div>
             <button type="button" className="setting-toggle" onClick={onToggleTemperatureUnit}>
@@ -122,7 +144,7 @@ function SidebarPanels({
 
           <div className="setting-row">
             <div>
-              <span className="setting-label">Wind Speed Unit</span>
+              <span className="setting-label">Wind Speed Unit (km/h / mph)</span>
               <p className="setting-copy">{windSpeedUnit}</p>
             </div>
             <button type="button" className="setting-toggle" onClick={onToggleWindSpeedUnit}>
@@ -163,7 +185,7 @@ function SidebarPanels({
 
         <div className="settings-footnote">
           <span>Default wind display: {weather ? `${weather.windKph} km/h` : '--'}</span>
-          <span>Converted: {weather ? `${toMph(weather.windKph)} mph` : '--'}</span>
+          <span>{isLoading ? loadingMessage : `Converted: ${weather ? `${toMph(weather.windKph)} mph` : '--'}`}</span>
         </div>
       </section>
     </aside>
