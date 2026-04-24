@@ -52,7 +52,6 @@ function AppHeader({
             <button type="button" className="location-button" onClick={onUseCurrentLocation}>
               {isLocatingLocation ? 'Detecting your location...' : 'Current Location'}
             </button>
-            <span className="status-pill">{statusMessage}</span>
           </div>
           <div className="action-strip" aria-label="Weather actions">
             <button type="button" className="action-button action-button-primary" onClick={onRefresh}>
