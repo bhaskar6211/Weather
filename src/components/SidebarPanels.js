@@ -47,7 +47,10 @@ function SidebarPanels({
               </div>
             ))
           ) : (
-            <p className="empty-state">{isLoading ? 'Loading hourly data...' : 'Hourly data is not available.'}</p>
+            <div className="empty-state-card" aria-live="polite">
+              <strong>{isLoading ? 'Loading hourly data...' : 'Hourly data unavailable'}</strong>
+              <span>{isLoading ? 'Fetching the next 24 hours.' : 'Check back after the current update completes.'}</span>
+            </div>
           )}
         </div>
       </details>

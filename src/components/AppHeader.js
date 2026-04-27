@@ -94,7 +94,10 @@ function AppHeader({
                   </button>
                 ))
               ) : (
-                <span className="recent-search-empty">No recent locations yet.</span>
+                <div className="empty-state-card recent-search-empty" aria-live="polite">
+                  <strong>No recent locations yet.</strong>
+                  <span>Search a city to save it here for quick access.</span>
+                </div>
               )}
             </div>
           </div>

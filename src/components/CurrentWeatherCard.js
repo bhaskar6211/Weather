@@ -16,12 +16,13 @@ function CurrentWeatherCard({
 }) {
   const conditionLabel = weather?.conditionGroup || weather?.condition || '--';
   const updatedAtLabel = weather?.updatedAt || '--';
+  const displayedLocation = weather ? weather.locationLabel?.split(',')?.[0] || weather.locationLabel : query;
 
   return (
     <article className="current-card">
       <div className="current-topline">
         <div>
-          <p className="location">{weather ? weather.locationLabel : query}</p>
+          <p className="location" title={weather?.locationLabel || query}>{displayedLocation}</p>
           <h2>Now</h2>
           <p className="summary">{isLoading ? loadingMessage : error || weather?.summary}</p>
         </div>
