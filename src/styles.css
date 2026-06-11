@@ -90,8 +90,8 @@ body.theme-light .panel-soft {
   padding: 28px;
   display: flex;
   justify-content: space-between;
-  gap: 24px;
-  align-items: start;
+  gap: 32px;
+  align-items: flex-start;
   margin-bottom: 24px;
   animation: rise 0.7s ease both;
 }
@@ -112,6 +112,11 @@ body.theme-light .panel-soft {
   letter-spacing: -0.02em;
 }
 
+.hero-copy {
+  flex: 0 1 auto;
+  max-width: 55%;
+}
+
 .hero-text {
   margin: 12px 0 8px;
   font-size: 1.1rem;
@@ -126,9 +131,10 @@ body.theme-light .panel-soft {
 
 .action-strip {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
   justify-content: flex-end;
+  width: 100%;
 }
 
 .action-button {
@@ -136,9 +142,11 @@ body.theme-light .panel-soft {
   color: var(--text);
   background: rgba(255, 255, 255, 0.04);
   border-radius: 999px;
-  padding: 11px 16px;
+  padding: 11px 14px;
   cursor: pointer;
   transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+  font-weight: 600;
+  font-size: 0.9rem;
 }
 
 .action-button:hover:not(:disabled) {
@@ -159,14 +167,17 @@ body.theme-light .panel-soft {
 
 .hero-actions {
   display: grid;
-  gap: 16px;
+  gap: 14px;
   justify-items: end;
+  width: 100%;
+  max-width: 380px;
+  flex-shrink: 0;
 }
 
 .search-form {
   display: flex;
   gap: 10px;
-  width: min(420px, 100%);
+  width: 100%;
 }
 
 .search-input {
@@ -227,8 +238,9 @@ body.theme-light .location-button {
 
 .status-row {
   display: grid;
-  gap: 10px;
+  gap: 14px;
   justify-items: end;
+  width: 100%;
 }
 
 .search-meta-row {
@@ -236,6 +248,7 @@ body.theme-light .location-button {
   gap: 10px;
   flex-wrap: wrap;
   justify-content: end;
+  width: 100%;
 }
 
 .location-button {
@@ -267,15 +280,17 @@ body.theme-light .location-button {
 
 .city-switcher {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
   justify-content: end;
+  width: 100%;
 }
 
 .recent-searches {
   display: grid;
-  gap: 10px;
+  gap: 8px;
   justify-items: end;
+  width: 100%;
 }
 
 .recent-searches-label {
@@ -307,9 +322,10 @@ body.theme-light .location-button {
 
 .recent-search-list {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
   justify-content: end;
+  width: 100%;
 }
 
 .recent-search-empty {
@@ -323,11 +339,13 @@ body.theme-light .location-button {
   color: var(--text);
   background: rgba(255, 255, 255, 0.025);
   border-radius: 999px;
-  padding: 12px 16px;
+  padding: 10px 14px;
   cursor: pointer;
   text-align: center;
   overflow-wrap: anywhere;
   transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+  font-weight: 600;
+  font-size: 0.9rem;
 }
 
 .city-button:hover,
@@ -999,6 +1017,95 @@ body.theme-light .alert-panel ul {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@media (min-width: 1600px) {
+  .app-shell {
+    width: min(1400px, calc(100% - 40px));
+    padding: 40px 0 60px;
+  }
+
+  .hero-panel {
+    padding: 36px;
+    border-radius: 32px;
+    gap: 32px;
+    margin-bottom: 32px;
+  }
+
+  .current-card {
+    padding: 36px;
+    border-radius: 30px;
+    gap: 24px;
+  }
+
+  .panel {
+    padding: 28px;
+    border-radius: 28px;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: minmax(0, 1.8fr) minmax(380px, 1fr);
+    gap: 32px;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px;
+  }
+
+  .metric-card {
+    padding: 20px;
+    border-radius: 24px;
+  }
+
+  .sidebar-stack {
+    gap: 32px;
+  }
+
+  .hourly-list {
+    gap: 12px;
+  }
+
+  .forecast-list {
+    gap: 12px;
+  }
+
+  .hero-copy h1 {
+    font-size: clamp(3rem, 5vw, 5rem);
+  }
+
+  .temperature {
+    font-size: clamp(5rem, 12vw, 8rem);
+  }
+}
+
+@media (min-width: 1900px) {
+  .app-shell {
+    width: min(1600px, calc(100% - 48px));
+  }
+
+  .dashboard-grid {
+    grid-template-columns: minmax(0, 2fr) minmax(420px, 1.1fr);
+    gap: 40px;
+  }
+
+  .hero-panel {
+    padding: 40px;
+    gap: 40px;
+  }
+
+  .current-card {
+    padding: 40px;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 20px;
+  }
+
+  .sidebar-stack {
+    gap: 36px;
   }
 }
 
